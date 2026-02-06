@@ -25,7 +25,7 @@ body {
     position: fixed;
     bottom: -30px;
     animation: floatUp linear infinite;
-    opacity: 0.85;
+    opacity: 0.9;
     pointer-events: none;
 }
 
@@ -49,6 +49,12 @@ body {
 }
 
 h2 { margin-bottom: 20px; }
+
+.red {
+    color: #ff1e56;
+    font-size: 28px;
+    font-weight: 800;
+}
 
 input {
     padding: 12px;
@@ -106,42 +112,62 @@ button.option {
 <body>
 
 <div class="container" id="app">
-    <h2>Before we head any further first, enter the 6 digit password 💌</h2>
+    <h2 class="red">HEYYYY BABYYYY</h2>
+    <p>
+        That might be a coincidence…<br><br>
+        To head further, answer the following questions.<br><br>
+        <b>Note:</b> Any wrong answer will result in your elimination  
+        and prove that you’re not Jay 😤
+    </p>
     <input type="password" id="password" placeholder="******">
     <button class="option" onclick="checkPassword()">Unlock ❤️</button>
 </div>
 
 <script>
 const app = document.getElementById("app");
+let index = 0;
+let locked = false;
+let noMessages = ["Nice try 😌", "Not this time 😛", "Almost cute, still no 😏"];
 
 const questions = [
-{ q: "When did we meet for the first time?",
+{
+  q: "When did we meet for the first time?",
   a: ["June 2023","May 2023","April 2023","July 2023"],
-  c: 1 },
-
-{ q: "What is our favourite song?",
+  c: 1
+},
+{
+  q: "What is our favourite song?",
   a: ["Channa Ve","Perfect","Die with a smile","Until I found you"],
-  c: 2 },
-
-{ q: "My favorite way to spend time with you:",
-  a: ["Talking endlessly","Doing nothing together","Going out","Whatever, as long as it’s with you"],
-  c: 3 },
-
-{ q: "Who fell in love first?",
-  a: ["Me","You","We both denied it in the beginning","It was destiny"],
-  c: 2 },
-
-{ q: "What do we bond over the most about?",
-  a: ["Potty talks 🚽","Roasting each other","Tickling","Going out on drives"],
-  c: 0 },
-
-{ q: "Will you be my long distance Valentine?",
-  a: ["Yes","No"],
+  c: 2
+},
+{
+  q: "When did we say I love you to each other?",
+  a: ["21st November","19th November","25th November","23rd November"],
+  c: 2
+},
+{
+  q: "How did it all start?",
+  a: [
+    "When you consoled me in the trip",
+    "When you saw me for the first time",
+    "When we went to watch Mission Impossible",
+    "When we got drunk at Carnival Pune"
+  ],
+  c: 3
+},
+{
+  q: "Okay now I’m sure it’s you 💖",
+  a: ["Go on"],
   c: 0,
-  final: true }
+  info: true
+},
+{
+  q: "Will you be my Valentine?",
+  a: ["Obviously yes","No"],
+  c: 0,
+  final: true
+}
 ];
-
-let index = 0;
 
 function checkPassword() {
     document.getElementById("password").value === "221024"
@@ -150,11 +176,19 @@ function checkPassword() {
 }
 
 function loadQuestion() {
+    locked = false;
     const q = questions[index];
     let html = `<h2>${q.q}</h2>`;
+    if (q.info) {
+        html += `<p>
+        Why I prepared this is to ask you a simple stupid question.<br><br>
+        Even though the fact that we are not gonna be with each other as we are in a long distance relationship now,
+        I really gotta ask you this.
+        </p>`;
+    }
     q.a.forEach((opt, i) => {
         const id = q.final && i === 1 ? "id='noBtn'" : "";
-        html += `<button class="option" ${id} onclick="answer(${i}, this)">${opt}</button>`;
+        html += `<button class="option" ${id} onclick="answer(${i}, this, event)">${opt}</button>`;
     });
     app.innerHTML = html;
 
@@ -162,71 +196,59 @@ function loadQuestion() {
     if (noBtn) {
         noBtn.style.position = "relative";
         noBtn.style.transition = "0.25s ease";
-        const dodge = () => {
-            noBtn.style.transform =
-              `translate(${Math.random()*320-160}px, ${Math.random()*200-100}px)`;
-        };
-        ["mouseenter","touchstart","click"].forEach(e =>
-            noBtn.addEventListener(e, dodge)
-        );
+        noBtn.addEventListener("mouseenter", dodgeNo);
+        noBtn.addEventListener("click", dodgeNo);
     }
 }
 
-function answer(i, btn) {
-    if (i === questions[index].c) {
-        btn.classList.add("correct");
+function dodgeNo(e) {
+    popHearts(e);
+    alert(noMessages[Math.floor(Math.random()*noMessages.length)]);
+    e.target.style.transform =
+        `translate(${Math.random()*260-130}px, ${Math.random()*180-90}px)`;
+}
 
-        if (!questions[index].final) {
-            miniExplosion();
-            setTimeout(() => {
-                index++;
-                loadQuestion();
-            }, 900);
-        } else {
-            megaExplosion();
-            setTimeout(endMessage, 2300);
-        }
+function answer(i, btn, e) {
+    if (locked) return;
+    popHearts(e);
+
+    if (i === questions[index].c) {
+        locked = true;
+        btn.classList.add("correct");
+        setTimeout(() => {
+            index++;
+            index < questions.length ? loadQuestion() : endMessage();
+        }, 900);
     } else {
         btn.classList.add("wrong");
     }
 }
 
-function miniExplosion() {
-    for (let i = 0; i < 12; i++) spawnFloating("❤️");
-}
-
-function megaExplosion() {
-    for (let i = 0; i < 160; i++) spawnFloating("❤️");
-    for (let i = 0; i < 40; i++) spawnFloating("💍");
-}
-
-function spawnFloating(symbol) {
-    const el = document.createElement("div");
-    el.className = "floating " + (symbol === "❤️" ? "heart" : "ring");
-    el.innerHTML = symbol;
-    el.style.left = Math.random()*100 + "vw";
-    el.style.fontSize = Math.random()*30 + 18 + "px";
-    el.style.animationDuration = Math.random()*3 + 3 + "s";
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 6000);
+function popHearts(e) {
+    for (let i = 0; i < 12; i++) {
+        const el = document.createElement("div");
+        el.className = "floating heart";
+        el.innerHTML = "❤️";
+        el.style.left = e.clientX + "px";
+        el.style.top = e.clientY + "px";
+        el.style.fontSize = Math.random()*20 + 16 + "px";
+        el.style.animationDuration = Math.random()*2 + 2 + "s";
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+    }
 }
 
 function endMessage() {
     app.innerHTML = `
-        <div class="final">
-        ❤️ I love you ❤️<br>
-        Happy Valentine’s Day JAY💖<br><br>
-        Your love,<br>
-        <b>Potty kong 💖</b>
-        </div>
-    `;
+    <div class="final">
+    Cheers to keeping on choosing each other after everything we’ve been through 🥂<br><br>
+    To many more Valentines together,<br>
+    until death do us apart 💖<br><br>
+    <b>I Love You Jayyyy ❤️❤️❤️</b>
+    </div>`;
 }
-
-setInterval(() => {
-    spawnFloating("❤️");
-    if (Math.random() > 0.7) spawnFloating("💍");
-}, 700);
 </script>
 
 </body>
 </html>
+
