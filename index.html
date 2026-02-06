@@ -48,11 +48,9 @@ body {
     text-align: center;
 }
 
-h2 { margin-bottom: 20px; }
-
 .red {
     color: #ff1e56;
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 800;
 }
 
@@ -69,7 +67,7 @@ input {
 button.option {
     width: 100%;
     padding: 12px;
-    margin: 8px 0;
+    margin: 10px 0;
     border-radius: 30px;
     border: none;
     font-size: 16px;
@@ -78,23 +76,8 @@ button.option {
 }
 
 .option:hover { transform: scale(1.06); }
-
-.correct { background: #38b000 !important; animation: pop 0.4s ease; }
-.wrong   { background: #e63946 !important; animation: shake 0.4s ease; }
-
-@keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    75% { transform: translateX(-6px); }
-    100% { transform: translateX(0); }
-}
-
-@keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.25); }
-    100% { transform: scale(1); }
-}
+.correct { background: #38b000 !important; }
+.wrong   { background: #e63946 !important; }
 
 .final {
     font-size: 22px;
@@ -114,10 +97,9 @@ button.option {
 <div class="container" id="app">
     <h2 class="red">HEYYYY BABYYYY</h2>
     <p>
-        That might be a coincidence…<br><br>
-        To head further, answer the following questions.<br><br>
-        <b>Note:</b> Any wrong answer will result in your elimination  
-        and prove that you’re not Jay 😤
+        Before we head any further,<br>
+        you gotta put in the <b>6 digit password</b><br>
+        to confirm your identity❤️ 
     </p>
     <input type="password" id="password" placeholder="******">
     <button class="option" onclick="checkPassword()">Unlock ❤️</button>
@@ -125,11 +107,21 @@ button.option {
 
 <script>
 const app = document.getElementById("app");
-let index = 0;
-let locked = false;
-let noMessages = ["Nice try 😌", "Not this time 😛", "Almost cute, still no 😏"];
+let index = -1;
+let noMessages = ["Nice try 😌","Not this time 😛","Still no 😏","Almost cute, still no 😈"];
 
 const questions = [
+{
+  intro: true,
+  text: `
+    <p>
+    That might be a coincidence…<br><br>
+    To head further, answer the following questions.<br><br>
+    <b>Note:</b> Any wrong answer will result in your elimination  
+    and prove that you’re not Jay 
+    </p>
+  `
+},
 {
   q: "When did we meet for the first time?",
   a: ["June 2023","May 2023","April 2023","July 2023"],
@@ -139,6 +131,21 @@ const questions = [
   q: "What is our favourite song?",
   a: ["Channa Ve","Perfect","Die with a smile","Until I found you"],
   c: 2
+},
+{
+  q: "My favorite way to spend time with you:",
+  a: ["Talking endlessly","Doing nothing together","Going out","Whatever, as long as it’s with you"],
+  c: 3
+},
+{
+  q: "Who fell in love first?",
+  a: ["Me","You","We both denied it in the beginning","It was destiny"],
+  c: 2
+},
+{
+  q: "What do we bond over the most?",
+  a: ["Potty talks 🚽","Roasting each other","Tickling","Going out on drives"],
+  c: 0
 },
 {
   q: "When did we say I love you to each other?",
@@ -156,94 +163,132 @@ const questions = [
   c: 3
 },
 {
+  info: true,
   q: "Okay now I’m sure it’s you 💖",
-  a: ["Go on"],
-  c: 0,
-  info: true
+  a: ["Go on"]
 },
 {
+  final: true,
   q: "Will you be my Valentine?",
   a: ["Obviously yes","No"],
-  c: 0,
-  final: true
+  c: 0
 }
 ];
 
 function checkPassword() {
-    document.getElementById("password").value === "221024"
-        ? loadQuestion()
-        : alert("Wrong password 😛");
+    if (document.getElementById("password").value === "221024") {
+        index = 0;
+        loadQuestion();
+    } else alert("Wrong password 😛");
 }
 
 function loadQuestion() {
-    locked = false;
     const q = questions[index];
-    let html = `<h2>${q.q}</h2>`;
-    if (q.info) {
-        html += `<p>
-        Why I prepared this is to ask you a simple stupid question.<br><br>
-        Even though the fact that we are not gonna be with each other as we are in a long distance relationship now,
-        I really gotta ask you this.
-        </p>`;
+    let html = "";
+
+    if (q.intro) {
+        html = q.text + `<button class="option" onclick="next()">Continue ❤️</button>`;
+    } else {
+        html = `<h2>${q.q}</h2>`;
+
+        if (q.info) {
+            html += `
+            <p>
+            Why I prepared this is to ask you a simple stupid question.<br><br>
+            Even though the fact that we are not gonna be with each other as we are in a long distance relationship now,<br>
+            I really gotta ask you this.
+            </p>`;
+        }
+
+        q.a.forEach((opt,i)=>{
+            const id = q.final && i===1 ? "id='noBtn'" : "";
+            html += `<button class="option" ${id} onclick="answer(${i},event,this)">${opt}</button>`;
+        });
     }
-    q.a.forEach((opt, i) => {
-        const id = q.final && i === 1 ? "id='noBtn'" : "";
-        html += `<button class="option" ${id} onclick="answer(${i}, this, event)">${opt}</button>`;
-    });
+
     app.innerHTML = html;
 
     const noBtn = document.getElementById("noBtn");
     if (noBtn) {
-        noBtn.style.position = "relative";
-        noBtn.style.transition = "0.25s ease";
         noBtn.addEventListener("mouseenter", dodgeNo);
         noBtn.addEventListener("click", dodgeNo);
     }
 }
 
-function dodgeNo(e) {
-    popHearts(e);
-    alert(noMessages[Math.floor(Math.random()*noMessages.length)]);
-    e.target.style.transform =
-        `translate(${Math.random()*260-130}px, ${Math.random()*180-90}px)`;
-}
+function next(){ index++; loadQuestion(); }
 
-function answer(i, btn, e) {
-    if (locked) return;
+function answer(i,e,btn){
     popHearts(e);
 
-    if (i === questions[index].c) {
-        locked = true;
+    // INFO SCREEN → always continue
+    if (questions[index].info) {
         btn.classList.add("correct");
-        setTimeout(() => {
+        setTimeout(()=>{
+            index++;
+            loadQuestion();
+        },600);
+        return;
+    }
+
+    // Final NO button
+    if (questions[index].final && i===1) return;
+
+    if (questions[index].c === i){
+        btn.classList.add("correct");
+        setTimeout(()=>{
             index++;
             index < questions.length ? loadQuestion() : endMessage();
-        }, 900);
+        },800);
     } else {
         btn.classList.add("wrong");
     }
 }
 
-function popHearts(e) {
-    for (let i = 0; i < 12; i++) {
-        const el = document.createElement("div");
-        el.className = "floating heart";
-        el.innerHTML = "❤️";
-        el.style.left = e.clientX + "px";
-        el.style.top = e.clientY + "px";
-        el.style.fontSize = Math.random()*20 + 16 + "px";
-        el.style.animationDuration = Math.random()*2 + 2 + "s";
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
+function dodgeNo(e){
+    popHearts(e);
+    alert(noMessages[Math.floor(Math.random()*noMessages.length)]);
+    e.target.style.transform =
+      `translate(${Math.random()*260-130}px,${Math.random()*180-90}px)`;
+}
+
+function popHearts(e){
+    for(let i=0;i<14;i++){
+        const h=document.createElement("div");
+        h.className="floating heart";
+        h.innerHTML="❤️";
+        h.style.left=e.clientX+"px";
+        h.style.top=e.clientY+"px";
+        h.style.fontSize=Math.random()*20+16+"px";
+        h.style.animationDuration=Math.random()*2+2+"s";
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(),4000);
     }
 }
 
-function endMessage() {
-    app.innerHTML = `
+function spawnFloating(symbol){
+    const el=document.createElement("div");
+    el.className="floating "+(symbol==="❤️"?"heart":"ring");
+    el.innerHTML=symbol;
+    el.style.left=Math.random()*100+"vw";
+    el.style.fontSize=Math.random()*28+18+"px";
+    el.style.animationDuration=Math.random()*3+3+"s";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),6000);
+}
+
+setInterval(()=>{
+    spawnFloating("❤️");
+    if(Math.random()>0.7) spawnFloating("💍");
+},700);
+
+function endMessage(){
+    app.innerHTML=`
     <div class="final">
-    Cheers to keeping on choosing each other after everything we’ve been through 🥂<br><br>
+    Cheers to keeping on choosing each other after everything we've been through 🥂<br><br>
+    We have already done the hardest part — finding each other among billions of people.<br>
+    Now let’s do the easiest thing: to never lose each other 💖<br><br>
     To many more Valentines together,<br>
-    until death do us apart 💖<br><br>
+    until death do us apart ❤️<br><br>
     <b>I Love You Jayyyy ❤️❤️❤️</b>
     </div>`;
 }
@@ -251,4 +296,5 @@ function endMessage() {
 
 </body>
 </html>
+
 
